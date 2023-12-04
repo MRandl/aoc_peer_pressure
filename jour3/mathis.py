@@ -67,8 +67,8 @@ def neighboring_stars(i, j, grid):
 def sum_of_gear_products(grid): 
     stars = {} # mapping of star positions to all neighboring numbers
     
-    num_string = ""
-    curr_stars_found = set()
+    num_string = "" # number we're currently processing
+    curr_stars_found = set() #stars found around the number we're currently processing
 
     for i in range(len(grid)):
         for j in range(len(grid[0])):
