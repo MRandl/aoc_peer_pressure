@@ -1,9 +1,6 @@
 from functools import reduce
 import math
 
-def is_winning_run(wait_time, total_time, current_record):
-    return (total_time - wait_time) * wait_time > current_record
-
 def solve_analytical(total_time, current_record):
     delta = (total_time ** 2) - (4 * current_record)
     root1 = math.ceil((total_time - math.sqrt(delta)) / 2)
