@@ -40,4 +40,3 @@ with open("input.txt") as f:
     lines = f.readlines()
     print("solution 1 :", solve(lines, False))
     print("solution 2 :", solve(lines, True))
-
