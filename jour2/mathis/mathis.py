@@ -29,7 +29,7 @@ def is_valid_run(parsed_line):
     return True
 
 sum = 0
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     for l in f.readlines():
         parsed = parse_line(l)
         if(is_valid_run(parsed)):
@@ -45,7 +45,7 @@ def power_of_parsed(parsed_line):
     return max_r * max_g * max_b
 
 sum = 0
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     for l in f.readlines():
         parsed = parse_line(l)
         sum += power_of_parsed(parsed)

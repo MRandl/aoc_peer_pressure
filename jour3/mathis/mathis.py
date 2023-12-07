@@ -50,7 +50,7 @@ def sum_of_good_numbers(grid):
             num_string = ""
     return sum
 
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     grid = f.readlines()
     sum = sum_of_good_numbers(grid)
         
@@ -94,7 +94,7 @@ def sum_of_gear_products(grid):
     return sum
 
 
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     grid = f.readlines()
     sum = sum_of_gear_products(grid)
         
