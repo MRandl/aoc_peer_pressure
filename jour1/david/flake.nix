@@ -1,10 +1,7 @@
 {
-  inputs = {
-    nixpkgs.url = github:nixos/nixpkgs/nixos-unstable;
-    flake-utils.url = github:numtide/flake-utils;
-  };
+  inputs.flake-utils.url = github:numtide/flake-utils;
 
-  outputs = { nixpkgs, flake-utils, ... }:
+  outputs = { self, nixpkgs, flake-utils }:
     flake-utils.lib.eachDefaultSystem (system:
       with nixpkgs.legacyPackages.${system}; {
         packages.default = stdenv.mkDerivation {
@@ -12,6 +9,11 @@
           version = "0.1.0";
           src = ./.;
           nativeBuildInputs = [ zig.hook ];
+        };
+
+        apps = {
+          "01" = flake-utils.lib.mkApp { drv = self.packages.${system}.default; name = "david01"; };
+          "02" = flake-utils.lib.mkApp { drv = self.packages.${system}.default; name = "david02"; };
         };
       });
 }
