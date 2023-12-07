@@ -30,7 +30,7 @@ def update_dict_with(line):
     for i in range(index + 1, index + len_of_intersection + 1):
         copies[i] += copies[index]
     
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     grid = f.readlines()
     for x in grid:
         update_dict_with(x)

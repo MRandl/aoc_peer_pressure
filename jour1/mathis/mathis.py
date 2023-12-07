@@ -1,7 +1,7 @@
 
 #part 1
 sum = 0
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     for l in f.readlines():
         nums = [x for x in l if x.isdigit()]
         sum += int(nums[0] + nums[-1]) # '+' is concat here
@@ -28,7 +28,7 @@ def analyze_tail(s):
     return analyze_tail(s[:-1]) 
 
 sum = 0
-with open("inputs/mathis.txt") as f:
+with open("input.txt") as f:
     for l in f.readlines():
         sum += int(analyze_head(l) + analyze_tail(l)) # '+' is concat here
 print("solution 2 :", sum)
