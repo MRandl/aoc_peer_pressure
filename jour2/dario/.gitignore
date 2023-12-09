@@ -3,3 +3,5 @@ main
 main.o
 main2
 main2.o
+
+zig-out/
