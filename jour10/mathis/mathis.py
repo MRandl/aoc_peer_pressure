@@ -9,7 +9,7 @@ def find_start_pos(lines):
             if(char == "S"):
                 return i, j
 
-def follow_direction(direction, position, maxx = 140):
+def next_position(direction, position, maxx = 140):
     x, y = position
     if direction == "N" and y > 0:
         return (x, y - 1)
@@ -31,18 +31,18 @@ def next_direction(position, coming_from, lines):
 
 def attempt_loop(i, j, direction, lines):
     positions = [(i, j)]
-    current_position = follow_direction(direction, (i, j))
-    while (current_position is not None) and (direction is not None) and current_position != (i,j):
-        positions.append(current_position)
+    position = next_position(direction, (i, j))
+    while (position is not None) and (direction is not None) and position != (i,j):
+        positions.append(position)
         coming_from = opposite[direction]
-        direction = next_direction(current_position, coming_from, lines)
-        current_position = follow_direction(direction, current_position)
+        direction = next_direction(position, coming_from, lines)
+        position = next_position(direction, position)
 
-    if current_position is None or direction is None:
+    if position is None or direction is None:
         return None
     return positions
 
-def find_area(loop): #idea from reddit : shoelace formula
+def find_area(loop): # idea from reddit : shoelace formula
     area = 0
     for i in range(-1, len(loop) - 1):
         prev_x, prev_y = loop[i]
