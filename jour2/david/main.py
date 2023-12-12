@@ -10,7 +10,8 @@ COLORS = {
 
 def handle_file(fname):
     with open(fname, "r") as f:
-        res = 0
+        sum_of_ids = 0
+        sum_of_powers = 0
 
         for line in f:
             line = line.strip()
@@ -36,9 +37,10 @@ def handle_file(fname):
                     good = False
 
             if good:
-                res += int(game_id)
+                sum_of_ids += int(game_id)
+            sum_of_powers += maxs['red'] * maxs['green'] * maxs['blue']
 
-        return res
+        return { 'sum_of_ids': sum_of_ids, 'sum_of_powers': sum_of_powers }
 
 if __name__ == '__main__':
     for fname in sys.argv[1:]:
