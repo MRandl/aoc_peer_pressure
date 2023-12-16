@@ -54,5 +54,4 @@ def follow_all_paths(grid):
 with open("input.txt", "r") as f:
     grid = f.read().splitlines()
     print("Solution 1 :", follow_path((0, 0), "E", grid))
-
     print("Solution 2 :", follow_all_paths(grid))
