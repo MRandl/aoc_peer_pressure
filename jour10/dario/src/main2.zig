@@ -39,7 +39,9 @@ pub fn main() !void {
     //unwrap the first iteration of the loop
     curr_point[0] -= 1;
     var tube = input[curr_point[0]][curr_point[1]];
-    while (tube != 'S') {
+    // stop is set when we reach 'S'
+    var stop = false;
+    while (!stop) {
         // We're in the situation:
         // Going UP from S.
         //
@@ -51,20 +53,10 @@ pub fn main() !void {
         // .L7.FJ..
         // ..L-J...
         // ........
-        //
-        // By trial and error, we choose
-        // that going UP means sign = -1,
+        // We therefore choose that
+        // going UP means sign = -1, and that
         // going DOWN means sign = +1
-        // in order to get a positive result.
         var sign : i32 = 0;
-        // Since the interior does not include the tubes
-        // need to subtract 1 at some point.
-        // we can subtract every time sign is +1
-        // or everytime sign is -1.
-        // Choosing the latter, the correction term is:
-        // correction term = MIN(0, sign)
-        defer area += sign * @as(i32, @intCast(curr_point[1])) + @min(0, sign);
-        defer tube = input[curr_point[0]][curr_point[1]];
         switch (tube) {
             '7' => {
                 if (curr_dir == RIGHT) {
@@ -72,6 +64,7 @@ pub fn main() !void {
                 } else if (curr_dir == UP) {
                     curr_dir = LEFT;
                     sign = -1;
+                    std.debug.print("Going UP on 7 => sign = -1 => area = {} - {} - 1\n", .{area, curr_point[1]});
                 } else unreachable;
             },
             'J','S' => {
@@ -80,15 +73,17 @@ pub fn main() !void {
                 } else if (curr_dir == RIGHT) {
                     curr_dir = UP;
                     sign = -1;
+                    std.debug.print("Going RIGHT on J => sign = -1 => area = {} - {} - 1\n", .{area, curr_point[1]});
                 } else unreachable;
                 if (tube == 'S') {
-                    break;
+                    stop = true;
                 }
             },
             'L' => {
                 if (curr_dir == DOWN) {
                     curr_dir = RIGHT;
                     sign = 1;
+                    std.debug.print("Going DOWN on L => sign = +1 => area = {} + {}\n", .{area, curr_point[1]});
                 } else if (curr_dir == LEFT) {
                     curr_dir = UP;
                 } else unreachable;
@@ -97,6 +92,7 @@ pub fn main() !void {
                 if (curr_dir == LEFT) {
                     curr_dir = DOWN;
                     sign = 1;
+                    std.debug.print("Going LEFT on F => sign = +1 => area = {} + {}\n", .{area, curr_point[1]});
                 } else if (curr_dir == UP) {
                     curr_dir = RIGHT;
                 } else unreachable;
@@ -105,12 +101,21 @@ pub fn main() !void {
             '|' => {
                 if (curr_dir == UP) {
                     sign = -1;
+                    std.debug.print("Going UP on | => sign = -1 => area = {} - {} - 1\n", .{area, curr_point[1]});
                 } else if (curr_dir == DOWN) {
                     sign = 1;
+                    std.debug.print("Going DOWN on | => sign = +1 => area = {} + {}\n", .{area, curr_point[1]});
                 } else unreachable;
             },
             else => unreachable // we are in the main loop (because I know the input)
         }
+        // Since the interior does not include the tubes
+        // need to subtract 1 at some point.
+        // we can subtract every time sign is +1
+        // or everytime sign is -1.
+        // Choosing the latter, the correction term is:
+        // correction term = MIN(0, sign)
+        area += sign * @as(i32, @intCast(curr_point[1])) + @min(0, sign);
         switch (curr_dir) {
             UP => curr_point[0] -= 1,
             RIGHT => curr_point[1] += 1,
@@ -118,8 +123,9 @@ pub fn main() !void {
             LEFT => curr_point[1] -= 1,
             else => unreachable
         }
+        tube = input[curr_point[0]][curr_point[1]];
     }
 
-    std.log.debug("Area = {}", .{area});
+    std.log.debug("Area = {}\n", .{area});
 
 }
