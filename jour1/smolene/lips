@@ -1,0 +1,207 @@
+: marker ;
+: imm 1 last-def-word @ >flags ! ;
+: ' readword lookup >code ;
+: lit ' , ; imm
+: char readword @b push push , , ; imm
+: code>name namesize cell + - ;
+: [ 0 outermode ! ; imm
+: ] 1 outermode ! ; imm
+
+: ifz push whenz , here @ 1000000000 , ; imm
+: then dup
+    here @ swap - 1 - 4 /
+    swap ! ; imm
+
+: >= < eqz ;
+: <= > eqz ;
+
+: can-deref
+    dup  mem_start >=
+    swap mem_end   <  and ;
+
+: can-tail @
+    dup can-deref ifz drop 0 unnest then
+    @ push [ ' nest @ , ] eq ;
+
+: ;replace 
+    here @ cell -
+    dup can-tail ifz drop lit ; unnest then
+    dup @ swap
+    push tail swap ! , lit ; ; imm
+
+: renameword
+    readword lookup >name
+    readword namesize memcpy ;
+
+renameword ; ;;
+renameword ;replace ;
+
+: // getc 10 - ifz unnest then // ; imm
+
+: ;then here @ cell -
+    dup can-tail ifz drop push unnest , lit then unnest then
+    dup @ swap
+    push tail swap ! ,
+    // code like 'fn ;then ;' will optimize code from this
+    // 'fn unnest unnest' to 'tail tail fn'
+    // 2 tails, one from ;then and one from ;
+    // but the ifz branch jump count will still jump to the same place
+    // which is now 'fn' instead of like unnest and thus the
+    // last function call before a ;then ; would still be called even
+    // if the branch was supposed to be skipped.
+    push unnest ,
+    lit then ; imm
+
+: allot here @ swap over + here ! ;
+: var here @ swap , : lit [ 
+    push push , , push unnest , 4294967295 , ;
+: const : lit [ push push , , push unnest , 4294967295 , ;
+
+: strend dup @b ifz ;then 1 + strend ;
+: strlen dup strend swap - ;
+
+: syscall_write // fd buf count
+    4 over3 over3 over3 0 dup dup syscall
+    nip nip nip ;
+
+: puts 1 swap dup strlen syscall_write
+    0 >= ifz 253 syscall_exit ;then ;
+
+cell allot const putc_buf
+: putc putc_buf !b
+    1 putc_buf 1 syscall_write
+    0 >= ifz 252 syscall_exit ;then ;
+
+: nl 10 putc ;
+: space 32 putc ;
+
+: _lpadloop dup ifz drop ;then 
+    1 - swap
+    1 - dup char 0 swap !b
+    swap _lpadloop ;
+: lpad over strlen - dup 0 > ifz drop ;then _lpadloop ;
+
+4 cells allot const _tostrbuf
+: _tostrmkchr
+    dup 9 > ifz char 0 + ;then
+    dup 35 > ifz 10 - char a + ;then
+    drop char ? ;
+: _tostrloop // base nextchar num --
+    dup 
+    over3 % _tostrmkchr over2 !b
+    over2 / dup ifz drop nip ;then
+    swap 1 - swap _tostrloop ;
+: tostr // base num -- strptr 
+    _tostrbuf zeroname
+    _tostrbuf namesize 2 - + swap _tostrloop ;
+
+: todec 10 swap tostr ;
+: tohex 16 swap tostr 8 lpad ;
+
+: . todec puts nl ;
+: .. dup . ;
+: .x tohex puts nl ;
+: ..x dup .x ;
+
+: lookup-fail-put
+    char l putc char : putc space over2 puts lookup-fail-die ;
+
+' lookup-fail-put lookup-fail !
+
+: decomp-loop cell + dup @
+    dup tohex puts space
+    dup can-deref
+    ifz drop nl decomp-loop ;then 
+    dup code>name puts nl
+    push unnest eq 
+    ifz decomp-loop ;then
+    dup cell + @ 4294967295 eq
+    ifz decomp-loop ;then drop ;
+: decomp 
+    dup code>name puts nl
+    decomp-loop ;
+
+// todo: 
+// fromhex
+// allocator
+// garbage collector
+// readstr " my string with spaces haha"
+// inline
+// probably best to go back and inline every previous forth fn
+// i can decompile it so i may as well
+// use `x f0f0f0f0` to read literal as hex
+// lookup swap found with head to optimize find speed
+
+4096 const data-buf-cap
+data-buf-cap allot 0 , const data-buf
+0 var data-buf-len
+3 var data-buf-fd
+0 var data-buf-eof
+
+// still-valid -- ; copy [still-valid:cap] to the start of the buffer
+: data-buf-fill
+    data-buf-len @ over -
+    data-buf  dup over3 +  over3
+    dup 0 >= ifz 251 syscall_exit ;then
+    memcpy
+    data-buf-fd @  over data-buf +  data-buf-cap over3 -
+    syscall_read
+    dup ifz 1 data-buf-eof ! then
+    + data-buf-len !
+    drop ;
+
+// buf len -- end len ; 1 past the nl, 0 if not found
+: next-eol dup ifz nip nip 0 0 ;then
+    1 - swap dup @b 10 - ifz 1 + swap ;then
+    1 + swap next-eol ;
+
+// fn buf len --
+: _for-lines-loop
+    over over next-eol // .. nbuf nlen
+    over ifz
+        data-buf-eof @ eqz ifz // eof: call on last line (without nl)
+            drop drop over over over4 call drop drop drop drop ;then
+
+        over3 data-buf - data-buf-fill
+        drop drop drop drop
+        // todo: implement calling laterdefined functions
+        data-buf data-buf-len @ _for-lines-loop ;then
+
+    // b l nb nl
+    // nb-b = line len, need nb and nl for next iter, b for cur fn
+    over3  over2 over5 -  over6 call
+    ifz drop drop drop drop drop ;then
+    nip2 nip2 _for-lines-loop ;
+
+// fn -- ; fn: buf len -- continue ; returns 0 when it wants to stop
+: for-lines data-buf data-buf-len @ _for-lines-loop ;
+
+// : f 2 over2 over2 syscall_write drop drop drop 1 ;
+// ' f for-lines
+
+// from here on, aoc
+// aoc day 1, task 1
+
+0 var first-digit
+0 var last-digit
+0 var number-sum
+
+// buf len -- 1
+: _find-numbers
+    dup ifz
+        drop drop
+        first-digit @ last-digit @ or ifz ;then
+        first-digit @ char 0 - 10 *
+        last-digit  @ char 0 - +
+        number-sum @ + number-sum ! ;then
+    1 - swap dup @b
+    dup is-digit ifz drop 1 + swap _find-numbers ;then
+    first-digit @ ifz dup first-digit ! then
+    last-digit ! 1 + swap _find-numbers ;
+
+: find-numbers 0 first-digit ! 0 last-digit ! _find-numbers 1 ;
+
+' find-numbers for-lines
+number-sum @ .
+exit
+
