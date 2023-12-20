@@ -101,5 +101,3 @@ with open("input.txt", "r") as f:
     print("Solution 1 :", sum([sum(gear) for gear in gears_final]))
 
     print("Solution 2 :", find_range_valid_count(commands))
-
-
