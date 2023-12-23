@@ -57,26 +57,26 @@ pub fn main() !void {
                 // for each elements in it's surrounding
                 var num1: ?u32 = null;
                 var num2: ?u32 = null;
-                var last_starting: ?usize = null;
+                var last_starting: ?[2]usize = null;
                 var overflow = false;
                 for (surs) |sur| {
                     // if it's a number, get a "pointer" to the number's value
                     if (num_starts[sur[0]][sur[1]]) |num_start| {
                         // ignore numbers that we've already seen for this gear.
-                        if (num_start == last_starting) {
+                        if (last_starting != null and sur[0] == last_starting.?[0] and num_start == last_starting.?[1]) {
                             continue;
                         }
                         // add it and note it as added.
                         const adding = nums[sur[0]][num_start] orelse unreachable;
                         if (num1 == null) {
                             num1 = adding;
-                            last_starting = num_start;
+                            last_starting = [_]usize{sur[0], num_start};
                             std.debug.print("({})", .{adding});
                             continue;
                         }
                         if (num2 == null) {
                             num2 = adding;
-                            last_starting = num_start;
+                            last_starting = [_]usize{sur[0], num_start};
                             std.debug.print("({})", .{adding});
                             continue;
                         }
@@ -140,4 +140,24 @@ fn surround(linum : usize, i: usize, backing: *[8][2]usize) [][2]usize {
         count += 1;
     }
     return backing[0..count];
+}
+
+test "surround" {
+    var backing: [8][2]usize = undefined;
+    std.debug.print("surround of 138,7 = ", .{});
+    for (surround(138, 7, &backing)) |coord| {
+        std.debug.print("[{},{}], ", .{coord[0], coord[1]});
+    } 
+    std.debug.print("\n", .{});
+    try std.testing.expect(surround(1, 1, &backing).len == 8);
+    try std.testing.expect(surround(0, 0, &backing).len == 3);
+    try std.testing.expect(surround(0, 4, &backing).len == 5);
+    try std.testing.expect(surround(4, 0, &backing).len == 5);
+    try std.testing.expect(surround(139, 0, &backing).len == 3);
+    try std.testing.expect(surround(0, 139, &backing).len == 3);
+    try std.testing.expect(surround(139, 1, &backing).len == 5);
+    try std.testing.expect(surround(1, 139, &backing).len == 5);
+    try std.testing.expect(surround(139, 139, &backing).len == 3);
+    try std.testing.expect(surround(138, 5, &backing).len == 8);
+    try std.testing.expect(surround(5, 138, &backing).len == 8);
 }
