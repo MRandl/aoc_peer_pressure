@@ -194,51 +194,54 @@ fn print_state(input: *[NUM_LINES][CHARS_PER_LINE]u8, state: *std.AutoHashMap([2
 //
 // A more accurate representation for N = 2 would be:
 // +-+-+-+-+-
-// |.|.|w|.|.
+// |.|q|w|e|.
 // +-+-+-+-+-
-// |.|q|E|e|.
+// |q|O|E|O|e
 // +-+-+-+-+-
 // |a|E|O|E|d
 // +-+-+-+-+-
-// |.|y|E|c|.
+// |y|O|E|O|c
 // +-+-+-+-+-
-// |.|.|x|.|.
+// |.|y|x|c|.
 //
 // Since total_steps = 26501365 = 202300 * 131 + 65, we have a value of for our problem of N = 202300:
-// with our N, the outer partial squares are going to be Odd. Don't get confused:
+// Since N is even: q,e,c,y are going to be Even-patterned.
+// and w,d,x,a are going to be Odd-patterned
 // For Even values of N, even-numbered rings are going to contain Odd-patterned squares.
 //
-// The total is going to be 1*(a+w+d+x) + (N-1)(q+e+c+y) + ODDS * O + EVENS * E
-// - It can be useful to define the number of plots in an odd center diamond as C
-// such that (a+w+d+x) = 4C + 2*(q+e+c+y)
-// - And then we can say that (q+e+c+y) = O - C.
-// Therefore the total is 4C + (N+1)(O - C) + ODDS * O + EVENS * E.
+// The total is going to be 1*(a+w+d+x) + N*(q+e+c+y) + ODDS * O + EVENS * E
+// - It can be useful to define the number of plots in an odd center diamond as Co
+// such that (a+w+d+x) = 2O + 2Co
+// - Similarly we can define the number of plots in an even center diamond as Ce
+// such that (q+e+c+y) = E - Ce
+// Therefore the total is 2O + 2Co + N*(E - Ce) + ODDS * O + EVENS * E.
 //
 // Now we need to deternime the number of Even and Odd numbers of squares.
 // These number of squares can be expressed as sums:
-// ODDS = SUM(i=1..N/2, 4*(2i)) + 1 // number of blocks in even rings
+// ODDS = SUM(i=1..N/2, 4*(2i)) + 1 + 4*(N-1) // number of blocks in even rings
 // EVENS = SUMS(i=1..N/2, 4(2i-1)) // number of block in even rings
 //
-// What remains is to measure the value of C, E, and O
-// which is the result of the program for part 1 for num_steps = 64, 130, and 131 respectively.
+// What remains is to measure the value of Ce, Co, E, and O
+// which is the result of the program for part 1 for num_steps = 64, 65, 130, and 131 respectively.
 
 
 const N: u64 = 202300;
-const C: u64 = 3682;
+const Ce: u64 = 3682;
+const Co: u64 = 3742;
 const E: u64 = 7474;
 const O: u64 = 7407;
 
 test "part2 evens/odds" {
-    var odds: u64 = 0;
+    var odds: u64 = 1 + 4 * (N - 1);
     for (1..N/2) |i| {
         odds += 8*i;
     }
     var evens: u64 = 0;
-    for (1..N/2) |i| {
-        evens += 4*(2*i-1);
+    for (0..N/2) |i| {
+        evens += 4*(2*i+1);
     }
 
-    const res = 4 * C + (N-1)*(O - C) + odds * O +  evens * E;
+    const res = 2*O + 2*Co + N*(E - Ce) + odds * O +  evens * E;
     std.debug.print("total = {}\n", .{res});
 
 }
